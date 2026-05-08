@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxo do Bot — WeHandle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; background: #F7F7F9; color: #1a1a2e; padding: 32px 24px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 0.85rem; color: #71767b; margin-bottom: 32px; }
+
+  /* Timeline de etapas */
+  .steps { display: flex; gap: 0; margin-bottom: 40px; }
+  .step {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    padding: 16px 20px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .step:first-child { border-radius: 12px 0 0 12px; }
+  .step:last-child { border-radius: 0 12px 12px 0; }
+  .step:not(:last-child)::after {
+    content: '▶';
+    position: absolute; right: -12px; top: 50%; transform: translateY(-50%);
+    color: #D4558A; font-size: 0.9rem; z-index: 2; background: #F7F7F9; padding: 2px;
+  }
+  .step.active { background: #D4558A; border-color: #D4558A; color: #fff; }
+  .step.active .step-label { color: rgba(255,255,255,0.8); }
+  .step-num { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #D4558A; margin-bottom: 4px; }
+  .step.active .step-num { color: rgba(255,255,255,0.75); }
+  .step-title { font-size: 0.9rem; font-weight: 600; }
+  .step-label { font-size: 0.75rem; color: #71767b; margin-top: 2px; }
+
+  /* Painel de detalhe da etapa */
+  .step-panel { display: none; }
+  .step-panel.active { display: block; }
+
+  /* Etapa 1 e 2 — cards simples de decisão */
+  .decision-card {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .decision-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; color: #1a1a2e; }
+  .branch { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f4; }
+  .branch:last-child { border-bottom: none; }
+  .branch-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .branch-text { font-size: 0.85rem; color: #444; line-height: 1.4; }
+  .branch-text strong { color: #1a1a2e; }
+  .arrow-next { display: inline-block; background: rgba(212,85,138,0.1); color: #D4558A; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-left: 6px; }
+
+  /* Etapa 3 — grid de módulos */
+  .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .module-btn {
+    background: #fff; border: 2px solid #e5e7eb; border-radius: 12px;
+    padding: 16px; cursor: pointer; transition: all 0.15s; text-align: left;
+  }
+  .module-btn:hover { border-color: #D4558A; background: #fff8fb; }
+  .module-btn.selected { border-color: #D4558A; background: #fff0f6; }
+  .module-icon { font-size: 1.4rem; margin-bottom: 8px; }
+  .module-name { font-size: 0.85rem; font-weight: 600; color: #1a1a2e; }
+  .module-count { font-size: 0.72rem; color: #71767b; margin-top: 3px; }
+
+  /* Subfluxo expandido */
+  .subflow { display: none; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-top: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .subflow.open { display: block; }
+  .subflow-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #71767b; margin-bottom: 14px; }
+
+  .tema-block { margin-bottom: 18px; }
+  .tema-label { font-size: 0.8rem; font-weight: 700; color: #1a1a2e; background: #f0f0f4; display: inline-block; padding: 3px 10px; border-radius: 4px; margin-bottom: 8px; }
+
+  .motivo-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 6px; margin-bottom: 4px; background: #fafafa; border: 1px solid #f0f0f4; gap: 12px; }
+  .motivo-nome { font-size: 0.82rem; color: #333; flex: 1; }
+  .motivo-sub { font-size: 0.72rem; color: #71767b; margin-top: 1px; }
+  .badge { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; flex-shrink: 0; }
+  .badge-ia { background: rgba(16,185,129,0.12); color: #059669; }
+  .badge-humano { background: rgba(245,158,11,0.12); color: #d97706; }
+  .badge-pendente { background: rgba(107,114,128,0.12); color: #6b7280; }
+
+  .fluxo-detail { font-size: 0.72rem; color: #71767b; margin-top: 3px; font-style: italic; }
+
+  .legend { display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #555; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>🤖 Fluxo de Atendimento do Bot</h2>
+  <p class="subtitle">Árvore de decisão atual — clique em cada etapa ou módulo para explorar</p>
+
+  <!-- Steps nav -->
+  <div class="steps">
+    <div class="step active" onclick="showStep(1)" id="tab1">
+      <div class="step-num">Etapa 1</div>
+      <div class="step-title">Identificação</div>
+      <div class="step-label">Coleta e-mail</div>
+    </div>
+    <div class="step" onclick="showStep(2)" id="tab2">
+      <div class="step-num">Etapa 2</div>
+      <div class="step-title">Segmentação</div>
+      <div class="step-label">Horário + Cliente</div>
+    </div>
+    <div class="step" onclick="showStep(3)" id="tab3">
+      <div class="step-num">Etapa 3</div>
+      <div class="step-title">Menu de Opções</div>
+      <div class="step-label">Selecione um módulo ↓</div>
+    </div>
+  </div>
+
+  <!-- Etapa 1 -->
+  <div class="step-panel active" id="panel1">
+    <div class="decision-card">
+      <h4>📧 Coleta de e-mail e verificação na base</h4>
+      <div class="branch">
+        <div class="branch-icon">❌</div>
+        <div class="branch-text"><strong>Usuário não encontrado</strong> — Bot coleta dados para atualização ou criação do cadastro na base</div>
+      </div>
+      <div class="branch">
+        <div class="branch-icon">✅</div>
+        <div class="branch-text"><strong>Usuário encontrado</strong> — Bot confirma dados e avança <span class="arrow-next">→ Etapa 2</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 2 -->
+  <div class="step-panel" id="panel2">
+    <div class="decision-card">
+      <h4>🕐 Verificação de horário e segmentação de cliente</h4>
+      <div class="branch">
+        <div class="branch-icon">🏢</div>
+        <div class="branch-text"><strong>Cliente Klabin</strong> — Independe de horário, sempre avança <span class="arrow-next">→ Etapa 3</span></div>
+      </div>
+      <div class="branch">
+        <div class="branch-icon">🌙</div>
+        <div class="branch-text"><strong>Não Klabin + fora do horário</strong> — Bot oferece abertura de solicitação via chat (fale conosco)</div>
+      </div>
+      <div class="branch">
+        <div class="branch-icon">☀️</div>
+        <div class="branch-text"><strong>Não Klabin + dentro do horário</strong> — Avança normalmente <span class="arrow-next">→ Etapa 3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Etapa 3 -->
+  <div class="step-panel" id="panel3">
+    <div class="modules-grid" id="modulesGrid"></div>
+    <div class="subflow" id="subflow">
+      <div class="subflow-title" id="subflowTitle"></div>
+      <div id="subflowContent"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="badge badge-ia">IA</span> Resolvido pelo bot</div>
+      <div class="legend-item"><span class="badge badge-humano">Triagem → Humano</span> Bot faz triagem e transfere</div>
+      <div class="legend-item"><span class="badge badge-pendente">Pendente</span> Em configuração</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Data ----
+const modules = [
+  {
+    icon: '📄', name: 'Documentos', key: 'documentos',
+    temas: [
+      {
+        tema: 'Tomador — Validação',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Revisão de invalidação', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+        ]
+      },
+      {
+        tema: 'Tomador — Isenção',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Botão indisponível', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Solicitar isenção', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Revisão de isenção', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Validação',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Revisão de invalidação', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Isenção',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Botão indisponível', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Revisão de isenção', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Validação Expressa',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Pagamento', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Contratar', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Cancelamento', retencao: 'Humano', fluxo: 'Solicita CNPJ → Data de contratação → Motivo de cancelamento → Evidência → Transfere' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Anexar',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Campo indisponível', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Pendências', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Anexar em massa', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '⚙️', name: 'Serviços', key: 'servicos',
+    temas: [
+      {
+        tema: 'Cadastro — Fornecedor / Subcontratado',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'E-mail convite', retencao: 'Humano', fluxo: 'Solicita e-mail do master → Transfere' },
+          { nome: 'Perfil de acesso', retencao: 'Humano', fluxo: 'Solicita tipo de perfil → e-mail do responsável → Transfere' },
+          { nome: 'Alteração', retencao: 'Humano', fluxo: 'Solicita CNPJ → Dado de correção → Transfere' },
+        ]
+      },
+      {
+        tema: 'Cadastro — Matriz e Filiais',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração', retencao: 'Humano', fluxo: 'Solicita CNPJ → Dado de correção → Transfere' },
+        ]
+      },
+      {
+        tema: 'Alocação',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alocação bloqueada — Ativo em outro CNPJ', retencao: 'Humano', fluxo: 'Solicita CPF e nome do colaborador → Transfere' },
+          { nome: 'Alocação bloqueada — Outros bloqueios', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Atua em + de 1 filial', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Criação',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração', retencao: 'Humano', fluxo: 'Solicita ID contrato → Dado de correção → Transfere' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '👥', name: 'Colaboradores', key: 'colaboradores',
+    temas: [
+      {
+        tema: 'Cadastro',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração', retencao: 'Humano', fluxo: 'Solicita CPF → Foto do documento → Dado de correção → Transfere' },
+          { nome: 'Cadastro em massa', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Gestão',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração de status', retencao: 'Humano', fluxo: 'Solicita ID contrato → Dados do colaborador → Dado de correção → Transfere' },
+          { nome: 'Transferência entre filiais', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '🔑', name: 'Login', key: 'login',
+    temas: [
+      {
+        tema: 'Acesso',
+        motivos: [
+          { nome: 'Login bloqueado', retencao: 'Humano', fluxo: 'Solicita e-mail do usuário → Transfere' },
+          { nome: 'Recuperar acesso', retencao: 'Humano', fluxo: 'Solicita dados do usuário → Transfere' },
+          { nome: 'E-mail reset senha', retencao: 'Humano', fluxo: 'Solicita e-mail do usuário → Transfere' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '🚀', name: 'Mobilização', key: 'mobilizacao',
+    temas: [
+      {
+        tema: 'Fornecedor — Integração',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Aba indisponível', retencao: 'Humano', fluxo: 'Solicita CPF → Transfere' },
+          { nome: 'E-mail integração', retencao: 'Humano', fluxo: 'Solicita e-mail do colaborador → Transfere' },
+          { nome: 'Conclusão pendente', retencao: 'Humano', fluxo: 'Solicita CPF ou CNPJ → Transfere' },
+          { nome: 'Agendamento', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Crachás',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: '2ª via', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Portaria',
+        motivos: [
+          { nome: 'Colaborador bloqueado', retencao: 'Humano', fluxo: 'Solicita CPF → Transfere' },
+          { nome: 'QR Code', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Fornecedor — Visitas',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração cadastro', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Tomador — Integração',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Aba indisponível', retencao: 'Humano', fluxo: 'Solicita CPF → Transfere' },
+          { nome: 'Agendamento', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Criação de conteúdo', retencao: 'Humano', fluxo: 'Solicita ID Contrato → Dados do conteúdo → Evidência → Transfere' },
+        ]
+      },
+      {
+        tema: 'Tomador — Crachás',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Processamento em lote', retencao: 'Pendente', fluxo: 'Em configuração' },
+          { nome: 'Crachás provisórios', retencao: 'Pendente', fluxo: 'Em configuração' },
+          { nome: '2ª via', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Tomador — Portaria',
+        motivos: [
+          { nome: 'Colaborador bloqueado', retencao: 'Humano', fluxo: 'Solicita CPF → Transfere' },
+          { nome: 'QR Code', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+      {
+        tema: 'Tomador — Visitas',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Alteração cadastro', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '📊', name: 'BI - Relatórios', key: 'bi',
+    temas: [
+      {
+        tema: 'Relatórios',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Dados divergentes', retencao: 'Humano', fluxo: 'Solicita BI → CNPJ → Filtros aplicados → Evidência → Transfere' },
+          { nome: 'Extração de relatórios', retencao: 'Bot', fluxo: 'Aberto para IA' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '🔧', name: 'Parametrizações', key: 'setups',
+    temas: [
+      {
+        tema: 'Setups',
+        motivos: [
+          { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
+          { nome: 'Ressalva', retencao: 'Humano', fluxo: 'Solicita o documento → Ocorrência → Transfere' },
+          { nome: 'Perfis e permissões', retencao: 'Humano', fluxo: 'Solicita perfil → Permissões → Transfere' },
+          { nome: 'Outros — Documentos bloqueio', retencao: 'Humano', fluxo: 'Solicita o documento → Remoção ou adição → Transfere' },
+          { nome: 'Outros — Regras de alocação', retencao: 'Humano', fluxo: 'Solicita regras → Transfere' },
+          { nome: 'Outros — Configuração serviço', retencao: 'Humano', fluxo: 'Solicita tipo de serviço → Risco → Transfere' },
+          { nome: 'Outros — CBO por treinamento', retencao: 'Humano', fluxo: 'Solicita o treinamento → CBOs obrigatórios → Transfere' },
+          { nome: 'Outros — Replicar matriz', retencao: 'Humano', fluxo: 'Solicita unidade modelo → Unidade cópia → Transfere' },
+        ]
+      },
+    ]
+  },
+  {
+    icon: '🏗️', name: 'Homologação', key: 'homologacao',
+    temas: [
+      {
+        tema: 'Homologação',
+        motivos: [
+          { nome: 'Solicitações gerais', retencao: 'Humano', fluxo: 'Solicita esclarecimento → Transfere' },
+        ]
+      },
+    ]
+  },
+];
+
+// ---- Render modules grid ----
+const grid = document.getElementById('modulesGrid');
+modules.forEach((mod, i) => {
+  const totalMotivos = mod.temas.reduce((a, t) => a + t.motivos.length, 0);
+  const btn = document.createElement('div');
+  btn.className = 'module-btn';
+  btn.id = 'mod-' + mod.key;
+  btn.innerHTML = `<div class="module-icon">${mod.icon}</div><div class="module-name">${mod.name}</div><div class="module-count">${mod.temas.length} tema${mod.temas.length > 1 ? 's' : ''} · ${totalMotivos} motivo${totalMotivos > 1 ? 's' : ''}</div>`;
+  btn.onclick = () => toggleModule(mod.key);
+  grid.appendChild(btn);
+});
+
+// ---- Render subflow ----
+function toggleModule(key) {
+  const mod = modules.find(m => m.key === key);
+  const subflow = document.getElementById('subflow');
+  const allBtns = document.querySelectorAll('.module-btn');
+
+  // If already open for this module, close
+  if (subflow.classList.contains('open') && document.getElementById('mod-'+key).classList.contains('selected')) {
+    subflow.classList.remove('open');
+    allBtns.forEach(b => b.classList.remove('selected'));
+    return;
+  }
+
+  allBtns.forEach(b => b.classList.remove('selected'));
+  document.getElementById('mod-'+key).classList.add('selected');
+
+  document.getElementById('subflowTitle').textContent = mod.icon + ' ' + mod.name + ' — Motivos de contato';
+
+  let html = '';
+  mod.temas.forEach(tema => {
+    html += `<div class="tema-block"><span class="tema-label">${tema.tema}</span>`;
+    tema.motivos.forEach(m => {
+      const badgeClass = m.retencao === 'Bot' ? 'badge-ia' : m.retencao === 'Pendente' ? 'badge-pendente' : 'badge-humano';
+      const badgeLabel = m.retencao === 'Bot' ? 'IA' : m.retencao === 'Pendente' ? 'Pendente' : 'Triagem → Humano';
+      html += `
+        <div class="motivo-row">
+          <div>
+            <div class="motivo-nome">${m.nome}</div>
+            <div class="fluxo-detail">${m.fluxo}</div>
+          </div>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  document.getElementById('subflowContent').innerHTML = html;
+  subflow.classList.add('open');
+}
+
+// ---- Step nav ----
+function showStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('panel'+i).classList.toggle('active', i===n);
+    document.getElementById('tab'+i).classList.toggle('active', i===n);
+  });
+}
+</script>
+</body>
+</html>
