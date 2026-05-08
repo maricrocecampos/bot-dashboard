@@ -158,6 +158,7 @@
       <div class="legend-item"><span class="badge badge-ia">IA</span> Resolvido pelo bot</div>
       <div class="legend-item"><span class="badge badge-humano">Triagem → Humano</span> Bot faz triagem e transfere</div>
       <div class="legend-item"><span class="badge badge-pendente">Pendente</span> Em configuração</div>
+      <div class="legend-item"><span style="font-size:0.68rem;font-weight:600;color:#7c3aed;background:rgba(124,58,237,0.08);padding:2px 7px;border-radius:4px;">⚠ Restrição</span> Disponível apenas para clientes específicos</div>
     </div>
   </div>
 </div>
@@ -173,7 +174,7 @@ const modules = [
         motivos: [
           { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
           { nome: 'Revisão de invalidação', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
-          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere', restricao: 'Apenas Klabin' },
         ]
       },
       {
@@ -181,7 +182,7 @@ const modules = [
         motivos: [
           { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
           { nome: 'Botão indisponível', retencao: 'Bot', fluxo: 'Aberto para IA' },
-          { nome: 'Solicitar isenção', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Solicitar isenção', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere', restricao: 'Apenas M Dias Branco e Globo' },
           { nome: 'Revisão de isenção', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
         ]
       },
@@ -190,7 +191,7 @@ const modules = [
         motivos: [
           { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
           { nome: 'Revisão de invalidação', retencao: 'Humano', fluxo: 'Solicita documento → Motivo da revisão → ID contrato → Dados do colaborador → Transfere' },
-          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere' },
+          { nome: 'Solicitar prioridade', retencao: 'Humano', fluxo: 'Solicita documento → ID contrato → Dados do colaborador → Transfere', restricao: 'Apenas Klabin' },
         ]
       },
       {
@@ -203,6 +204,7 @@ const modules = [
       },
       {
         tema: 'Fornecedor — Validação Expressa',
+        restricaoTema: 'Exceto Klabin',
         motivos: [
           { nome: 'Dúvidas', retencao: 'Bot', fluxo: 'Aberto para IA' },
           { nome: 'Pagamento', retencao: 'Bot', fluxo: 'Aberto para IA' },
@@ -436,14 +438,16 @@ function toggleModule(key) {
 
   let html = '';
   mod.temas.forEach(tema => {
-    html += `<div class="tema-block"><span class="tema-label">${tema.tema}</span>`;
+    const temaRestricao = tema.restricaoTema ? ` <span style="font-size:0.68rem;font-weight:600;color:#7c3aed;background:rgba(124,58,237,0.08);padding:2px 7px;border-radius:4px;margin-left:6px;">⚠ ${tema.restricaoTema}</span>` : '';
+    html += `<div class="tema-block"><span class="tema-label">${tema.tema}</span>${temaRestricao}`;
     tema.motivos.forEach(m => {
       const badgeClass = m.retencao === 'Bot' ? 'badge-ia' : m.retencao === 'Pendente' ? 'badge-pendente' : 'badge-humano';
       const badgeLabel = m.retencao === 'Bot' ? 'IA' : m.retencao === 'Pendente' ? 'Pendente' : 'Triagem → Humano';
+      const restricaoTag = m.restricao ? `<span style="font-size:0.68rem;font-weight:600;color:#7c3aed;background:rgba(124,58,237,0.08);padding:1px 6px;border-radius:4px;margin-left:4px;">⚠ ${m.restricao}</span>` : '';
       html += `
         <div class="motivo-row">
           <div>
-            <div class="motivo-nome">${m.nome}</div>
+            <div class="motivo-nome">${m.nome}${restricaoTag}</div>
             <div class="fluxo-detail">${m.fluxo}</div>
           </div>
           <span class="badge ${badgeClass}">${badgeLabel}</span>
