@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard Bot WeHandle — 01/05/2026 – 11/05/2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F7F7F9;color:#1a1a2e;font-size:15px;line-height:1.5}
+.container{max-width:1160px;margin:0 auto;padding:0 24px 48px}
+.header{background:linear-gradient(135deg,#1a1a2e 0%,#2d1b69 100%);color:#fff;padding:28px 0}
+.header-inner{max-width:1160px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.header-title{font-size:24px;font-weight:800;letter-spacing:-0.5px}
+.header-sub{font-size:13px;opacity:0.65;margin-top:3px}
+.badge-period{background:rgba(212,85,138,.25);border:1px solid rgba(212,85,138,.5);color:#f9a8d4;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap}
+.section{margin-top:28px}
+.section-title{font-size:17px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:block;width:4px;height:20px;background:#D4558A;border-radius:2px;flex-shrink:0}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:20px 22px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:18px 20px;border-top:4px solid #D4558A}
+.kpi.green{border-top-color:#10B981}.kpi.blue{border-top-color:#3B82F6}
+.kpi.yellow{border-top-color:#F59E0B}.kpi.purple{border-top-color:#7C3AED}
+.kpi.red{border-top-color:#EF4444}
+.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6B7280;margin-bottom:5px}
+.kpi-value{font-size:30px;font-weight:800;color:#1a1a2e;line-height:1}
+.kpi-detail{font-size:12px;color:#9CA3AF;margin-top:5px}
+.filter-bar{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:14px 20px;margin-top:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-btn{border:1px solid #E5E7EB;background:#F9FAFB;color:#374151;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.filter-btn:hover,.filter-btn.active{background:#D4558A;color:#fff;border-color:#D4558A}
+.note-box{background:#FEF3C7;border:1px solid #F59E0B;border-radius:10px;padding:12px 16px;font-size:13px;color:#92400E;margin-top:14px;line-height:1.5}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:800px){.two-col,.three-col{grid-template-columns:1fr}}
+.chart-wrap{position:relative;height:240px;width:100%}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#6B7280;padding:9px 12px;border-bottom:2px solid #E5E7EB;text-align:left}
+th.center{text-align:center}
+tr:hover td{background:#F9FAFB!important}
+.sub-label{font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.4px;margin:18px 0 10px}
+.flow-step{background:#fff;border-radius:12px;border:2px solid #E5E7EB;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.flow-step.active,.flow-step:hover{border-color:#D4558A;box-shadow:0 4px 16px rgba(212,85,138,.12)}
+.flow-step-header{display:flex;justify-content:space-between;align-items:center}
+.flow-step-num{width:34px;height:34px;border-radius:50%;background:#D4558A;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.flow-content{display:none;margin-top:14px;padding-top:14px;border-top:1px solid #E5E7EB}
+.flow-step.active .flow-content{display:block}
+.mod-tab{display:inline-flex;align-items:center;gap:6px;border:1px solid #E5E7EB;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:500;cursor:pointer;background:#F9FAFB;margin:3px;transition:all .15s}
+.mod-tab:hover,.mod-tab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.mod-detail{display:none;margin-top:14px;padding:16px;background:#F9FAFB;border-radius:8px}
+.mod-detail.show{display:block}
+.tema-title{font-weight:700;color:#1a1a2e;margin-bottom:8px;font-size:13px;margin-top:12px}
+.tema-title:first-child{margin-top:0}
+.motivo-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #E5E7EB}
+.motivo-row:last-child{border-bottom:none}
+.badge-bot{background:#D1FAE5;color:#065F46;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px}
+.badge-human{background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;margin-top:1px}
+.badge-res{background:#EDE9FE;color:#5B21B6;font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;margin-left:4px}
+.footer{text-align:center;padding:28px 0;font-size:12px;color:#9CA3AF;border-top:1px solid #E5E7EB;margin-top:36px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">🤖 Dashboard Bot de Atendimento IA</div>
+      <div class="header-sub">Wehandle-chat.V2 &nbsp;·&nbsp; Gerado em 11/05/2026 às 16:14</div>
+    </div>
+    <div class="badge-period">📅 01/05/2026 – 11/05/2026</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- FILTROS -->
+  <div class="filter-bar">
+    <span style="font-size:13px;font-weight:600;color:#374151">Período:</span>
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todo período</button>
+    <button class="filter-btn" onclick="setFilter('7d',this)">Últimos 7 dias</button>
+    <button class="filter-btn" onclick="setFilter('30d',this)">Últimos 30 dias</button>
+    <button class="filter-btn" onclick="setFilter('week',this)">Esta semana</button>
+    <button class="filter-btn" onclick="setFilter('month',this)">Este mês</button>
+    <span id="filter-note" style="font-size:12px;color:#9CA3AF;margin-left:auto">Dados: 01/05/2026 – 11/05/2026</span>
+  </div>
+
+  <!-- NOTA -->
+  <div class="note-box">
+    ⚠️ <strong>Nota sobre transferências:</strong> Parte das transferências para humano é <strong>intencional por design de fluxo</strong>
+    — o bot realiza triagem e encaminha para atendentes especializados em motivos que requerem ação manual. Isso não representa falha do bot.
+  </div>
+
+  <!-- MÓDULO 1 -->
+  <div class="section">
+    <div class="section-title">🎯 Módulo 1 — KPIs Principais</div>
+
+    <div class="sub-label">Volume &amp; Retenção</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total de conversas</div>
+        <div class="kpi-value">3,707</div>
+        <div class="kpi-detail">01/05/2026 – 11/05/2026</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-label">Retenção pela IA</div>
+        <div class="kpi-value">9.0%</div>
+        <div class="kpi-detail">333 resolvidas automaticamente</div>
+      </div>
+      <div class="kpi yellow">
+        <div class="kpi-label">Transferência para humano</div>
+        <div class="kpi-value">52.5%</div>
+        <div class="kpi-detail">1,948 conversas escaladas</div>
+      </div>
+    </div>
+
+    <div class="sub-label" style="margin-top:20px">Satisfação</div>
+    <div class="kpi-grid">
+      <div class="kpi purple">
+        <div class="kpi-label">BSAT (CSAT ≥ 4★)</div>
+        <div class="kpi-value">31.0%</div>
+        <div class="kpi-detail">333 conversas resolvidas pela IA · base CSAT</div>
+      </div>
+      <div class="kpi blue">
+        <div class="kpi-label">Taxa de resposta à pesquisa</div>
+        <div class="kpi-value">681.7%</div>
+        <div class="kpi-detail">Proporção de casos de uso com BSAT registrado</div>
+      </div>
+    </div>
+
+    <!-- Gráficos de pizza -->
+    <div class="two-col" style="margin-top:16px">
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:14px;color:#374151">Tipo de resposta do bot</div>
+        <div class="chart-wrap"><canvas id="replyChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:14px;color:#374151">Status de resolução</div>
+        <div class="chart-wrap"><canvas id="resolutionChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÓDULO 2 -->
+  <div class="section">
+    <div class="section-title">📈 Módulo 2 — Comportamento do Usuário</div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Pediu humano sem explorar</div>
+        <div class="kpi-value">1.9%</div>
+        <div class="kpi-detail">Sem navegar pelos menus do bot</div>
+      </div>
+      <div class="kpi yellow">
+        <div class="kpi-label">Pediu humano após interagir</div>
+        <div class="kpi-value">11.6%</div>
+        <div class="kpi-detail">Interagiu com o bot mas ainda pediu atendente</div>
+      </div>
+      <div class="kpi" style="border-top-color:#EF4444">
+        <div class="kpi-label">Interrompeu triagem</div>
+        <div class="kpi-value">7.6%</div>
+        <div class="kpi-detail">Pediu humano durante coleta de dados</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-label">Abandono por inatividade</div>
+        <div class="kpi-value">2.5%</div>
+        <div class="kpi-detail">Conversa encerrada por timeout</div>
+      </div>
+    </div>
+
+    <!-- Navegação L1 + L2 -->
+    <div class="two-col" style="margin-top:16px">
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:14px;color:#374151">Top módulos acessados (L1)</div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Documentos</span>
+            <span style="color:#6B7280;font-weight:600">1996</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:100.0%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Colaboradores</span>
+            <span style="color:#6B7280;font-weight:600">497</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:24.9%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Serviços</span>
+            <span style="color:#6B7280;font-weight:600">180</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:9.0%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Login</span>
+            <span style="color:#6B7280;font-weight:600">145</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:7.3%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Mobilização</span>
+            <span style="color:#6B7280;font-weight:600">103</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:5.2%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Parametrizações</span>
+            <span style="color:#6B7280;font-weight:600">2</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:0.1%;background:#D4558A;height:8px;border-radius:6px"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:14px;color:#374151">Top categorias (L2)</div>
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Validação</span>
+            <span style="color:#6B7280;font-weight:600">2129</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:100.0%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Anexar documentos</span>
+            <span style="color:#6B7280;font-weight:600">235</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:11.0%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Isenção</span>
+            <span style="color:#6B7280;font-weight:600">228</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:10.7%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Login</span>
+            <span style="color:#6B7280;font-weight:600">145</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:6.8%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Integração</span>
+            <span style="color:#6B7280;font-weight:600">94</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:4.4%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Alocação</span>
+            <span style="color:#6B7280;font-weight:600">59</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:2.8%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Crachás</span>
+            <span style="color:#6B7280;font-weight:600">18</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:0.8%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div><div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+            <span style="color:#374151;font-weight:500">Portaria</span>
+            <span style="color:#6B7280;font-weight:600">17</span>
+          </div>
+          <div style="background:#E5E7EB;border-radius:6px;height:8px;overflow:hidden;margin-top:5px"><div style="width:0.8%;background:#7C3AED;height:8px;border-radius:6px"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subcategorias L3 -->
+    <div class="card" style="margin-top:16px">
+      <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:#374151">Top subcategorias acessadas (L3)</div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Subcategoria (motivo de contato)</th><th class="center">Acessos</th></tr></thead>
+          <tbody><tr style="background:#F9FAFB"><td style="padding:8px 12px;font-size:13px">1. Revisão invalidação</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">1506</td></tr><tr style="background:#fff"><td style="padding:8px 12px;font-size:13px">2. Revisão isenção</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">94</td></tr><tr style="background:#F9FAFB"><td style="padding:8px 12px;font-size:13px">3. Campo indisponível</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">84</td></tr><tr style="background:#fff"><td style="padding:8px 12px;font-size:13px">4. Botão indisponível</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">73</td></tr><tr style="background:#F9FAFB"><td style="padding:8px 12px;font-size:13px">5. Recuperar acesso</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">59</td></tr><tr style="background:#fff"><td style="padding:8px 12px;font-size:13px">6. Contratação</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">45</td></tr><tr style="background:#F9FAFB"><td style="padding:8px 12px;font-size:13px">7. E-mail reset senha</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">45</td></tr><tr style="background:#fff"><td style="padding:8px 12px;font-size:13px">8. Cadastro em massa</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">40</td></tr><tr style="background:#F9FAFB"><td style="padding:8px 12px;font-size:13px">9. Extração relatórios</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">30</td></tr><tr style="background:#fff"><td style="padding:8px 12px;font-size:13px">10. Solicitar prioridade</td><td style="padding:8px 12px;text-align:center;font-size:13px;font-weight:600;color:#D4558A">29</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Fricção -->
+    <div class="card" style="margin-top:16px">
+      <div style="font-weight:600;font-size:14px;margin-bottom:14px;color:#374151">Momentos de fricção / travamento</div>
+      <div class="three-col">
+        <div style="background:#FEF3C7;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:800;color:#92400E">1820</div>
+          <div style="font-size:12px;color:#92400E;margin-top:4px;font-weight:600">Bot pediu reformulação</div>
+          <div style="font-size:11px;color:#B45309;margin-top:2px">"Não entendi" / "mais detalhes"</div>
+        </div>
+        <div style="background:#FEE2E2;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:800;color:#991B1B">4098</div>
+          <div style="font-size:12px;color:#991B1B;margin-top:4px;font-weight:600">Mensagens repetidas</div>
+          <div style="font-size:11px;color:#B91C1C;margin-top:2px">Usuário repetiu a mesma msg</div>
+        </div>
+        <div style="background:#EDE9FE;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:800;color:#5B21B6">67</div>
+          <div style="font-size:12px;color:#5B21B6;margin-top:4px;font-weight:600">Longas sem progresso</div>
+          <div style="font-size:11px;color:#6D28D9;margin-top:2px">&gt;10 msgs sem navegar caso de uso</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÓDULO 3 -->
+  <div class="section">
+    <div class="section-title">🧠 Módulo 3 — Base de Conhecimento</div>
+
+    <div class="kpi-grid" style="margin-bottom:16px">
+      <div class="kpi blue">
+        <div class="kpi-label">Total de artigos</div>
+        <div class="kpi-value">202</div>
+        <div class="kpi-detail">Na base de conhecimento</div>
+      </div>
+      <div class="kpi purple">
+        <div class="kpi-label">BSAT artigos (notas 4 e 5)</div>
+        <div class="kpi-value">45.5<span style="font-size:15px;color:#9CA3AF">%</span></div>
+        <div class="kpi-detail">5 de 11 artigos avaliados com nota 4 ou 5</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:#374151">Top por taxa de uso</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Artigo</th><th class="center">Uso</th><th class="center">Auto</th><th class="center">Escalada</th><th class="center">BSAT</th></tr></thead>
+            <tbody><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Dúvidas sobre cadastro de colaborador</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">4.7%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">63.9%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">11.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">1.00</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Critérios de validação e invalidação em documentos</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">4.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">38.7%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">32.3%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">O que é e como funciona validação de documentos</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">3.4%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">53.8%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">26.9%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">ASO (Atestado de Saúde Ocupacional)</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">3.3%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">52.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">12.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.43</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Introdução à plataforma - Primeiros Passos do Fornecedor</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">3.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">47.8%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">21.7%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">O que é e como contratar validação expressa</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">3.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">65.2%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">4.3%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.00</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como consultar prazo e responsável pela validação</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">2.7%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">52.4%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">23.8%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.00</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Cadastro da Empresa</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">2.5%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">63.2%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">21.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como anexar documentos</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">2.2%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">52.9%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">17.6%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Campos indisponíveis para anexar documentos</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">2.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">50.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#F59E0B;font-weight:600">31.2%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-weight:600;font-size:14px;margin-bottom:12px;color:#374151">Top por resolução automática</div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Artigo</th><th class="center">Uso</th><th class="center">Auto</th><th class="center">Escalada</th><th class="center">BSAT</th></tr></thead>
+            <tbody><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">APR — Análise Preliminar de Risco</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Bug - Usuário perdeu permissões no perfil Master</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Capacitação para Trabalho com Eletricidade</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Carteira de Identidade ou Registro Geral (RG)</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Colaborador atende mais de uma filial</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.4%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como alocar o mesmo colaborador em contratos ou CNPJs diferentes</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.3%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como alterar o responsável pelo aceite do contrato</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como atualizar uma integração expirada</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.3%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como consultar o histórico completo de movimentações de um fornecedor</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.1%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr><tr>
+          <td style="padding:8px 12px;font-size:13px;color:#374151">Como desvincular um fornecedor de uma unidade ou serviço específico</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">0.5%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">100.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px;color:#10B981;font-weight:600">0.0%</td>
+          <td style="padding:8px 12px;text-align:center;font-size:13px">—</td>
+        </tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÓDULO 4 — FLUXO -->
+  <div class="section">
+    <div class="section-title">🤖 Módulo 4 — Fluxo de Atendimento</div>
+
+    <div class="flow-step active" onclick="toggleStep(this)">
+      <div class="flow-step-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="flow-step-num">1</div>
+          <div><div style="font-weight:700">Identificação</div><div style="font-size:13px;color:#6B7280">Coleta e validação do e-mail</div></div>
+        </div>
+        <span style="font-size:18px;color:#D4558A;transition:transform .2s">▾</span>
+      </div>
+      <div class="flow-content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+          <div style="background:#F9FAFB;border-radius:8px;padding:12px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">📧 E-mail <strong>não encontrado</strong></div>
+            <div style="font-size:13px;color:#6B7280">Bot coleta dados para criação ou atualização do cadastro</div>
+          </div>
+          <div style="background:#F9FAFB;border-radius:8px;padding:12px">
+            <div style="font-weight:600;font-size:13px;margin-bottom:4px">✅ E-mail <strong>encontrado</strong></div>
+            <div style="font-size:13px;color:#6B7280">Avança para Etapa 2 — Segmentação</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-step-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="flow-step-num">2</div>
+          <div><div style="font-weight:700">Segmentação</div><div style="font-size:13px;color:#6B7280">Perfil (Klabin / Não Klabin) e horário</div></div>
+        </div>
+        <span style="font-size:18px;color:#D4558A">▸</span>
+      </div>
+      <div class="flow-content">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px">
+          <div style="background:#D1FAE5;border-radius:8px;padding:12px">
+            <div style="font-weight:700;font-size:13px;color:#065F46;margin-bottom:3px">Klabin</div>
+            <div style="font-size:12px;color:#065F46">Avança direto para Etapa 3</div>
+          </div>
+          <div style="background:#FEF3C7;border-radius:8px;padding:12px">
+            <div style="font-weight:700;font-size:13px;color:#92400E;margin-bottom:3px">Não Klabin + Fora do horário</div>
+            <div style="font-size:12px;color:#92400E">Oferece abertura de chamado via bot</div>
+          </div>
+          <div style="background:#DBEAFE;border-radius:8px;padding:12px">
+            <div style="font-weight:700;font-size:13px;color:#1E40AF;margin-bottom:3px">Não Klabin + Horário comercial</div>
+            <div style="font-size:12px;color:#1E40AF">Avança para Etapa 3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-step-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="flow-step-num">3</div>
+          <div><div style="font-weight:700">Menu de Casos de Uso</div><div style="font-size:13px;color:#6B7280">Clique em um módulo para expandir</div></div>
+        </div>
+        <span style="font-size:18px;color:#D4558A">▸</span>
+      </div>
+      <div class="flow-content">
+        <div id="mod-tabs" style="margin-bottom:10px"></div>
+        <div id="mod-detail"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <strong>Dashboard Bot WeHandle</strong> &nbsp;·&nbsp; Wehandle-chat.V2 &nbsp;·&nbsp; 01/05/2026 – 11/05/2026<br>
+    Módulo 1: 3,707 conversas &nbsp;·&nbsp; Módulo 2: 3,794 conversas &nbsp;·&nbsp; Módulo 3: 202 artigos<br>
+    Gerado em 11/05/2026 às 16:14 &nbsp;·&nbsp; Dados: arquivos exportados locais<br>
+    Transferências incluem triagem intencional por design de fluxo
+  </div>
+</div>
+
+<script>
+const DONUT = {"labels": ["use-case", "other"], "values": [14878, 455], "colors": ["#7C3AED", "#9CA3AF"]};
+const RESO  = {"labels": ["Resolvido pela IA", "N\u00e3o resolvido", "N\u00e3o avaliado"], "values": [333, 3188, 186], "colors": ["#10B981", "#EF4444", "#9CA3AF"]};
+const BOT_FLOW = [{"icon": "📄", "name": "Documentos", "key": "documentos", "temas": [{"tema": "Validação", "motivos": [{"nome": "Solicitar prioridade", "retencao": "Humano", "fluxo": "Triagem", "restricao": "Apenas Klabin"}, {"nome": "Revisão invalidação", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Prazo / Responsável análise", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Documento vencido", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Análise em atraso", "retencao": "Humano", "fluxo": "Triagem"}]}, {"tema": "Isenção", "motivos": [{"nome": "Solicitar isenção", "retencao": "Humano", "fluxo": "Triagem", "restricao": "Apenas M Dias e Globo"}, {"nome": "Revisão isenção", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Desativar isenção", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Botão indisponível", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Prazo / Responsável análise", "retencao": "Bot", "fluxo": "Aberto para IA"}]}, {"tema": "Validação Expressa", "restricaoTema": "Exceto Klabin", "motivos": [{"nome": "Contratação", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Pagamento", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Cancelamento / Reembolso", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Ativação", "retencao": "Humano", "fluxo": "Triagem"}]}, {"tema": "Anexar documentos", "motivos": [{"nome": "Campo indisponível", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Anexar em massa", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Abrir competência", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Pendências documentais", "retencao": "Bot", "fluxo": "Aberto para IA"}]}]}, {"icon": "⚙️", "name": "Serviços", "key": "servicos", "temas": [{"tema": "Cadastro fornecedor / subcontratado", "motivos": [{"nome": "E-mail convite", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Perfil de acesso", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Alteração cadastro", "retencao": "Humano", "fluxo": "Triagem"}]}, {"tema": "Cadastro matriz / filiais", "motivos": [{"nome": "Alteração cadastro", "retencao": "Humano", "fluxo": "Triagem"}]}, {"tema": "Alocação", "motivos": [{"nome": "Alocação bloqueada", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Atua em mais de uma filial", "retencao": "Bot", "fluxo": "Aberto para IA"}]}, {"tema": "Criação de serviço", "motivos": [{"nome": "Alteração informações", "retencao": "Humano", "fluxo": "Triagem"}]}]}, {"icon": "👥", "name": "Colaboradores", "key": "colaboradores", "temas": [{"tema": "Cadastro colaboradores", "motivos": [{"nome": "Alteração cadastro", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Cadastro em massa", "retencao": "Bot", "fluxo": "Aberto para IA"}]}, {"tema": "Gestão colaboradores", "motivos": [{"nome": "Alteração informações", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Reativação", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Transferência entre filiais", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Colaborador bloqueado", "retencao": "Bot", "fluxo": "Aberto para IA"}]}]}, {"icon": "🚀", "name": "Mobilização", "key": "mobilizacao", "temas": [{"tema": "Integração", "motivos": [{"nome": "Aba indisponível", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "E-mail integração", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Conclusão pendente", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Agendamento", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Criação de conteúdo", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Colaborador integrado", "retencao": "Humano", "fluxo": "Triagem"}]}, {"tema": "Crachás", "motivos": [{"nome": "2ª via", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Processamento em lote", "retencao": "Bot", "fluxo": "Aberto para IA"}, {"nome": "Crachás provisórios", "retencao": "Bot", "fluxo": "Aberto para IA"}]}, {"tema": "Visitas", "motivos": [{"nome": "Alteração cadastro", "retencao": "Bot", "fluxo": "Aberto para IA"}]}, {"tema": "Portaria", "motivos": [{"nome": "Colaborador bloqueado", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "QR Code", "retencao": "Bot", "fluxo": "Aberto para IA"}]}]}, {"icon": "🔑", "name": "Login", "key": "login", "temas": [{"tema": "Login", "motivos": [{"nome": "Login bloqueado", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Recuperar acesso", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "E-mail reset senha", "retencao": "Humano", "fluxo": "Triagem"}]}]}, {"icon": "📊", "name": "BI-Relatórios", "key": "bi", "temas": [{"tema": "BI-Relatórios", "motivos": [{"nome": "Dados divergentes", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Aba indisponível", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Extração relatórios", "retencao": "Bot", "fluxo": "Aberto para IA"}]}]}, {"icon": "🔧", "name": "Parametrizações", "key": "parametrizacoes", "temas": [{"tema": "Parametrizações", "motivos": [{"nome": "Ressalva", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Perfis e permissões", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Documentos bloqueio", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Regras de alocação", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Configuração serviço", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "CBO por treinamento", "retencao": "Humano", "fluxo": "Triagem"}, {"nome": "Replicar matriz", "retencao": "Humano", "fluxo": "Triagem"}]}]}];
+
+// ── Charts ──────────────────────────────────────────────────────────────────
+const chartOpts = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { position:'bottom', labels:{ padding:10, font:{ size:11, family:'Inter' } } }
+  }
+};
+
+new Chart(document.getElementById('replyChart'), {
+  type:'doughnut',
+  data:{ labels:DONUT.labels,
+    datasets:[{ data:DONUT.values, backgroundColor:DONUT.colors, borderWidth:2, borderColor:'#fff' }] },
+  options:{ ...chartOpts, cutout:'58%' }
+});
+
+new Chart(document.getElementById('resolutionChart'), {
+  type:'doughnut',
+  data:{ labels:RESO.labels,
+    datasets:[{ data:RESO.values, backgroundColor:RESO.colors, borderWidth:2, borderColor:'#fff' }] },
+  options:{ ...chartOpts, cutout:'58%' }
+});
+
+// ── Filters ─────────────────────────────────────────────────────────────────
+function setFilter(preset, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const map = {all:'Todo período','7d':'Últimos 7 dias','30d':'Últimos 30 dias',week:'Esta semana',month:'Este mês'};
+  document.getElementById('filter-note').textContent = 'Filtro: ' + (map[preset] || preset);
+}
+
+// ── Flow steps ───────────────────────────────────────────────────────────────
+function toggleStep(el) {
+  const wasActive = el.classList.contains('active');
+  document.querySelectorAll('.flow-step').forEach(s => {
+    s.classList.remove('active');
+    s.querySelector('span').textContent = '▸';
+  });
+  if (!wasActive) {
+    el.classList.add('active');
+    el.querySelector('span').textContent = '▾';
+  }
+}
+
+// ── Bot modules ──────────────────────────────────────────────────────────────
+const tabsEl   = document.getElementById('mod-tabs');
+const detailEl = document.getElementById('mod-detail');
+
+BOT_FLOW.forEach((mod, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'mod-tab';
+  btn.innerHTML = mod.icon + ' ' + mod.name;
+  btn.onclick   = () => selectMod(i);
+  tabsEl.appendChild(btn);
+});
+
+function selectMod(idx) {
+  document.querySelectorAll('.mod-tab').forEach((b,i) => b.classList.toggle('active', i===idx));
+  const mod = BOT_FLOW[idx];
+  let html = '';
+  mod.temas.forEach(t => {
+    html += `<div class="tema-title">📌 ${t.tema}`;
+    if (t.restricaoTema) html += ` <span class="badge-res">⚠ ${t.restricaoTema}</span>`;
+    html += `</div>`;
+    t.motivos.forEach(m => {
+      const badge = m.retencao === 'Bot'
+        ? `<span class="badge-bot">🤖 IA</span>`
+        : `<span class="badge-human">👤 Triagem</span>`;
+      const res = m.restricao ? `<span class="badge-res">⚠ ${m.restricao}</span>` : '';
+      html += `<div class="motivo-row">${badge}<div style="flex:1"><span style="font-size:13px;font-weight:600">${m.nome}</span>${res}<div style="font-size:12px;color:#6B7280;margin-top:1px">${m.fluxo}</div></div></div>`;
+    });
+  });
+  detailEl.innerHTML = `<div class="mod-detail show">${html}</div>`;
+}
+
+selectMod(0);
+</script>
+</body>
+</html>
